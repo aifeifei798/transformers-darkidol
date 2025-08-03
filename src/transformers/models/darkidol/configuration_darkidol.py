@@ -33,16 +33,16 @@ logger = logging.get_logger(__name__)
 
 class DarkidolTextConfig(PretrainedConfig):
     r"""
-    This is the configuration class to store the configuration of a [`Gemma3TextModel`]. It is used to instantiate an Gemma3Text
+    This is the configuration class to store the configuration of a [`DarkidolTextModel`]. It is used to instantiate an DarkidolText
     model according to the specified arguments, defining the model architecture. Instantiating a configuration with the
-    defaults will yield a similar configuration to that of the Gemma3Text-7B.
-    e.g. [google/gemma3_text-7b](https://huggingface.co/google/gemma3_text-7b)
+    defaults will yield a similar configuration to that of the DarkidolText-7B.
+    e.g. [google/darkidol_text-7b](https://huggingface.co/google/darkidol_text-7b)
     Configuration objects inherit from [`PretrainedConfig`] and can be used to control the model outputs. Read the
     documentation from [`PretrainedConfig`] for more information.
     Args:
         vocab_size (`int`, *optional*, defaults to 262208):
-            Vocabulary size of the Gemma3Text model. Defines the number of different tokens that can be represented by the
-            `inputs_ids` passed when calling [`Gemma3TextModel`]
+            Vocabulary size of the DarkidolText model. Defines the number of different tokens that can be represented by the
+            `inputs_ids` passed when calling [`DarkidolTextModel`]
         hidden_size (`int`, *optional*, defaults to 2304):
             Dimension of the hidden representations.
         intermediate_size (`int`, *optional*, defaults to 9216):
@@ -90,7 +90,7 @@ class DarkidolTextConfig(PretrainedConfig):
         query_pre_attn_scalar (`float`, *optional*, defaults to 256):
             Scaling factor used on the attention scores
         sliding_window (`int`, *optional*, defaults to 4096):
-            In Gemma3Text, every other layer uses sliding window attention. This is the size of the sliding window.
+            In DarkidolText, every other layer uses sliding window attention. This is the size of the sliding window.
         layer_types (`list`, *optional*):
             Attention pattern for each layer.
         final_logit_softcapping (`float`, *optional*):
@@ -138,11 +138,11 @@ class DarkidolTextConfig(PretrainedConfig):
             The base period of the RoPE embeddings for local attention.
 
     ```python
-    >>> from transformers import Gemma3TextModel, Gemma3TextConfig
-    >>> # Initializing a Gemma3Text gemma3_text-7b style configuration
-    >>> configuration = Gemma3TextConfig()
-    >>> # Initializing a model from the gemma3_text-7b style configuration
-    >>> model = Gemma3TextModel(configuration)
+    >>> from transformers import DarkidolTextModel, DarkidolTextConfig
+    >>> # Initializing a DarkidolText darkidol_text-7b style configuration
+    >>> configuration = DarkidolTextConfig()
+    >>> # Initializing a model from the darkidol_text-7b style configuration
+    >>> model = DarkidolTextModel(configuration)
     >>> # Accessing the model configuration
     >>> configuration = model.config
     ```
@@ -251,17 +251,17 @@ class DarkidolTextConfig(PretrainedConfig):
 
 class DarkidolConfig(PretrainedConfig):
     r"""
-    This is the configuration class to store the configuration of a [`Gemma3ForConditionalGeneration`]. It is used to instantiate an
-    Gemma3ForConditionalGeneration according to the specified arguments, defining the model architecture. Instantiating a configuration
-    with the defaults will yield a similar configuration to that of the PaliGemma-2B.
+    This is the configuration class to store the configuration of a [`DarkidolForConditionalGeneration`]. It is used to instantiate an
+    DarkidolForConditionalGeneration according to the specified arguments, defining the model architecture. Instantiating a configuration
+    with the defaults will yield a similar configuration to that of the PaliDarkidol-2B.
 
-    e.g. [google/gemma-3-4b](https://huggingface.co/google/gemma-3-4b)
+    e.g. [google/darkidol-4b](https://huggingface.co/google/darkidol-4b)
 
     Configuration objects inherit from [`PretrainedConfig`] and can be used to control the model outputs. Read the
     documentation from [`PretrainedConfig`] for more information.
 
     Args:
-        text_config (`Union[Gemma3TextConfig, dict]`, *optional*):
+        text_config (`Union[DarkidolTextConfig, dict]`, *optional*):
             The config object of the text backbone.
         vision_config (`Union[AutoConfig, dict]`,  *optional*):
             Custom vision config or dict.
@@ -280,19 +280,19 @@ class DarkidolConfig(PretrainedConfig):
     Example:
 
     ```python
-    >>> from transformers import Gemma3ForConditionalGeneration, Gemma3Config, SiglipVisionConfig, Gemma3TextConfig
+    >>> from transformers import DarkidolForConditionalGeneration, DarkidolConfig, SiglipVisionConfig, DarkidolTextConfig
 
     >>> # Initializing a Siglip-like vision config
     >>> vision_config = SiglipVisionConfig()
 
-    >>> # Initializing a Gemma3 Text config
-    >>> text_config = Gemma3TextConfig()
+    >>> # Initializing a Darkidol Text config
+    >>> text_config = DarkidolTextConfig()
 
-    >>> # Initializing a Gemma3 gemma-3-4b style configuration
-    >>> configuration = Gemma3Config(vision_config, text_config)
+    >>> # Initializing a Darkidol darkidol-4b style configuration
+    >>> configuration = DarkidolConfig(vision_config, text_config)
 
-    >>> # Initializing a model from the gemma-3-4b style configuration
-    >>> model = Gemma3TextConfig(configuration)
+    >>> # Initializing a model from the darkidol-4b style configuration
+    >>> model = DarkidolTextConfig(configuration)
 
     >>> # Accessing the model configuration
     >>> configuration = model.config

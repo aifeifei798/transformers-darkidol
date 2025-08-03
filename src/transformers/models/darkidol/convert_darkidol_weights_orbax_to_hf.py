@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-r"""Utility to convert Gemma models from Orbax to HF Transformers checkpoint.
+r"""Utility to convert Darkidol models from Orbax to HF Transformers checkpoint.
 
 python -m transformers.models.darkidol.convert_darkidol_weights_orbax_to_hf \
     --variant='darkidol_4b' \
@@ -40,7 +40,7 @@ from transformers import (
     DarkidolImageProcessor,
     DarkidolProcessor,
     DarkidolTextConfig,
-    GemmaTokenizerFast,
+    DarkidolTokenizerFast,
     GenerationConfig,
     SiglipVisionConfig,
 )
@@ -121,12 +121,12 @@ _VISION_CONFIG = {
     "vision_use_head": False,
 }
 
-_VARIANT_GEMMA_3_1B = "darkidol_1b"
-_VARIANT_GEMMA_3_4B = "darkidol_4b"
-_VARIANT_GEMMA_3_12B = "darkidol_12b"
-_VARIANT_GEMMA_3_27B = "darkidol_27b"
+_VARIANT_Darkidol_1B = "darkidol_1b"
+_VARIANT_Darkidol_4B = "darkidol_4b"
+_VARIANT_Darkidol_12B = "darkidol_12b"
+_VARIANT_Darkidol_27B = "darkidol_27b"
 _VARIANTS = {
-    _VARIANT_GEMMA_3_1B: DarkidolConfig(
+    _VARIANT_Darkidol_1B: DarkidolConfig(
         text_config=DarkidolTextConfig(
             vocab_size=262_144,
             hidden_size=1152,
@@ -144,7 +144,7 @@ _VARIANTS = {
         ),
         vision_config=None,
     ),
-    _VARIANT_GEMMA_3_4B: DarkidolConfig(
+    _VARIANT_Darkidol_4B: DarkidolConfig(
         text_config=DarkidolTextConfig(
             vocab_size=262_208,
             hidden_size=2560,
@@ -162,7 +162,7 @@ _VARIANTS = {
         ),
         vision_config=_VISION_CONFIG,
     ),
-    _VARIANT_GEMMA_3_12B: DarkidolConfig(
+    _VARIANT_Darkidol_12B: DarkidolConfig(
         text_config=DarkidolTextConfig(
             vocab_size=262_208,
             hidden_size=30 * 128,
@@ -180,7 +180,7 @@ _VARIANTS = {
         ),
         vision_config=_VISION_CONFIG,
     ),
-    _VARIANT_GEMMA_3_27B: DarkidolConfig(
+    _VARIANT_Darkidol_27B: DarkidolConfig(
         text_config=DarkidolTextConfig(
             vocab_size=262_208,
             hidden_size=42 * 128,
@@ -236,7 +236,7 @@ _TOKENIZER_PATH = flags.DEFINE_string(
 
 _VARIANT = flags.DEFINE_enum(
     name="variant",
-    default=_VARIANT_GEMMA_3_4B,
+    default=_VARIANT_Darkidol_4B,
     help="The model variant to convert.",
     enum_values=set(_VARIANTS.keys()),
 )
@@ -363,7 +363,7 @@ def convert_transformer_weights(
             # Tied to language_model.lm_head.weight, assigned at the end.
             converted_paths = ["language_model.model.embed_tokens.weight"]
 
-            if _VARIANT.value != _VARIANT_GEMMA_3_1B:
+            if _VARIANT.value != _VARIANT_Darkidol_1B:
                 # Darkidol model doesn't have image soft token in input and output embeddings, resize to avoid bugs we had with Mllama
                 pre_expansion_embeddings = weights
                 mu = np.mean(pre_expansion_embeddings, axis=0)
@@ -372,12 +372,12 @@ def convert_transformer_weights(
                 weights = np.vstack([pre_expansion_embeddings, new_embeddings])
 
             converted_weights = [weights]
-        elif _VARIANT.value == _VARIANT_GEMMA_3_1B or prop in ("mm_output_embedding", "mm_input_embedding_extra"):
+        elif _VARIANT.value == _VARIANT_Darkidol_1B or prop in ("mm_output_embedding", "mm_input_embedding_extra"):
             return zip([], [])
         else:
             raise ValueError(f"Unexpected member, {prop}, in Embedder.")
     elif path.startswith(f"{_TRANSFORMER_EMBEDDER}/mm"):
-        if _VARIANT.value == _VARIANT_GEMMA_3_1B:
+        if _VARIANT.value == _VARIANT_Darkidol_1B:
             return zip([], [])
 
         if path.endswith("/mm_input_projection"):
@@ -504,7 +504,7 @@ def main(*args):
     config = _VARIANTS[variant]
     config.text_config.torch_dtype = getattr(torch, _TRANSFORMER_DTYPE.value)
 
-    if variant == _VARIANT_GEMMA_3_1B:
+    if variant == _VARIANT_Darkidol_1B:
         config.vision_config = None
     else:
         config.vision_config.torch_dtype = getattr(torch, _VISION_DTYPE.value)
@@ -515,29 +515,29 @@ def main(*args):
         config.eos_token_id = [1, 106]
 
     logging.info(
-        "Converting Gemma 3 (%s) @ %s (language) and %s (vision)",
+        "Converting Darkidol 3 (%s) @ %s (language) and %s (vision)",
         variant,
         _TRANSFORMER_DTYPE.value,
         _VISION_DTYPE.value,
     )
     state_tree = convert(_CHECKPOINT_PATH.value, config)
-    logging.info("Converted Gemma 3 (%s) state tree from Orbax to Hugging Face.", variant)
+    logging.info("Converted Darkidol 3 (%s) state tree from Orbax to Hugging Face.", variant)
 
     with accelerate.init_empty_weights():
-        if variant == _VARIANT_GEMMA_3_1B:
+        if variant == _VARIANT_Darkidol_1B:
             model = DarkidolForCausalLM(config=config.text_config)
         else:
             model = DarkidolForConditionalGeneration(config)
 
     model.load_state_dict(state_tree, assign=True, strict=True)
     logging.info(
-        "Loaded Gemma 3 (%s) in Hugging Face Transformers as a %s instance.",
+        "Loaded Darkidol 3 (%s) in Hugging Face Transformers as a %s instance.",
         variant,
         type(model).__name__,
     )
     model.save_pretrained(output_path, safe_serialization=True)
     logging.info(
-        "Saved Gemma 3 (%s) to SafeTensors in %s using %s",
+        "Saved Darkidol 3 (%s) to SafeTensors in %s using %s",
         variant,
         output_path,
         type(model).__name__,
@@ -545,7 +545,7 @@ def main(*args):
     del model
     del state_tree
 
-    tokenizer = GemmaTokenizerFast(
+    tokenizer = DarkidolTokenizerFast(
         _TOKENIZER_PATH.value,
         add_bos_token=True,
         extra_special_tokens={
@@ -556,9 +556,9 @@ def main(*args):
         chat_template=_CHAT_TEMPLATE if _INCLUDE_CHAT_TEMPLATE.value else None,
     )
     tokenizer.save_pretrained(output_path)
-    logging.info("Saved GemmaTokenizer for %s to %s", variant, output_path)
+    logging.info("Saved DarkidolTokenizer for %s to %s", variant, output_path)
 
-    if variant != _VARIANT_GEMMA_3_1B:
+    if variant != _VARIANT_Darkidol_1B:
         image_processor = DarkidolImageProcessor(
             image_seq_length=256,
             image_mean=(0.5,) * 3,

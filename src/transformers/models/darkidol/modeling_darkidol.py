@@ -1035,8 +1035,8 @@ class DarkidolForConditionalGeneration(DarkidolPreTrainedModel, GenerationMixin)
         >>> import requests
         >>> from transformers import AutoProcessor, DarkidolForConditionalGeneration
 
-        >>> model = DarkidolForConditionalGeneration.from_pretrained("google/gemma-3-4b-it")
-        >>> processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
+        >>> model = DarkidolForConditionalGeneration.from_pretrained("google/darkidol-4b-it")
+        >>> processor = AutoProcessor.from_pretrained("google/darkidol-4b-it")
 
         >>> messages = [
         ...     {

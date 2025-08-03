@@ -32,22 +32,22 @@ from ...modeling_rope_utils import rope_config_validation
 from ...modeling_utils import ALL_ATTENTION_FUNCTIONS
 from ...processing_utils import Unpack
 from ...utils import TransformersKwargs, auto_docstring, can_return_tuple, logging
-from ..gemma2.configuration_gemma2 import Gemma2Config
+from ..gemma2.configuration_gemma2 import Darkidol2Config
 from ..gemma2.modeling_gemma2 import (
-    Gemma2Attention,
-    Gemma2ForCausalLM,
-    Gemma2MLP,
-    Gemma2Model,
-    Gemma2PreTrainedModel,
-    Gemma2RMSNorm,
-    Gemma2RotaryEmbedding,
+    Darkidol2Attention,
+    Darkidol2ForCausalLM,
+    Darkidol2MLP,
+    Darkidol2Model,
+    Darkidol2PreTrainedModel,
+    Darkidol2RMSNorm,
+    Darkidol2RotaryEmbedding,
     apply_rotary_pos_emb,
     eager_attention_forward,
 )
 from ..paligemma.modeling_paligemma import (
     PaligemmaCausalLMOutputWithPast,
-    PaliGemmaForConditionalGeneration,
-    PaliGemmaModel,
+    PaliDarkidolForConditionalGeneration,
+    PaliDarkidolModel,
     PaligemmaModelOutputWithPast,
 )
 from ..siglip import SiglipVisionConfig
@@ -56,7 +56,7 @@ from ..siglip import SiglipVisionConfig
 logger = logging.get_logger(__name__)
 
 
-class DarkidolTextConfig(Gemma2Config, PretrainedConfig):
+class DarkidolTextConfig(Darkidol2Config, PretrainedConfig):
     r"""
     This is the configuration class to store the configuration of a [`DarkidolTextModel`]. It is used to instantiate an DarkidolText
     model according to the specified arguments, defining the model architecture. Instantiating a configuration with the
@@ -264,9 +264,9 @@ class DarkidolConfig(PretrainedConfig):
     r"""
     This is the configuration class to store the configuration of a [`DarkidolForConditionalGeneration`]. It is used to instantiate an
     DarkidolForConditionalGeneration according to the specified arguments, defining the model architecture. Instantiating a configuration
-    with the defaults will yield a similar configuration to that of the PaliGemma-2B.
+    with the defaults will yield a similar configuration to that of the PaliDarkidol-2B.
 
-    e.g. [google/gemma-3-4b](https://huggingface.co/google/gemma-3-4b)
+    e.g. [google/darkidol-4b](https://huggingface.co/google/darkidol-4b)
 
     Configuration objects inherit from [`PretrainedConfig`] and can be used to control the model outputs. Read the
     documentation from [`PretrainedConfig`] for more information.
@@ -299,10 +299,10 @@ class DarkidolConfig(PretrainedConfig):
     >>> # Initializing a Darkidol Text config
     >>> text_config = DarkidolTextConfig()
 
-    >>> # Initializing a Darkidol gemma-3-4b style configuration
+    >>> # Initializing a Darkidol darkidol-4b style configuration
     >>> configuration = DarkidolConfig(vision_config, text_config)
 
-    >>> # Initializing a model from the gemma-3-4b style configuration
+    >>> # Initializing a model from the darkidol-4b style configuration
     >>> model = DarkidolTextConfig(configuration)
 
     >>> # Accessing the model configuration
@@ -375,23 +375,23 @@ class DarkidolTextScaledWordEmbedding(nn.Embedding):
         return super().forward(input_ids) * self.embed_scale.to(self.weight.dtype)
 
 
-class DarkidolMLP(Gemma2MLP):
+class DarkidolMLP(Darkidol2MLP):
     def __init__(self, config: DarkidolTextConfig):
         super().__init__(config)
 
 
-class DarkidolRMSNorm(Gemma2RMSNorm):
+class DarkidolRMSNorm(Darkidol2RMSNorm):
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
 
 
-class DarkidolRotaryEmbedding(Gemma2RotaryEmbedding):
+class DarkidolRotaryEmbedding(Darkidol2RotaryEmbedding):
     def __init__(self, config: DarkidolTextConfig, device=None):
         super().__init__(config)
 
 
 # Weird way to inherit but otherwise the sliding window gets defined first and can't access `is_sliding`
-class DarkidolAttention(Gemma2Attention):
+class DarkidolAttention(Darkidol2Attention):
     def __init__(self, config: DarkidolTextConfig, layer_idx: int):
         self.is_sliding = config.layer_types[layer_idx] == "sliding_attention"
 
@@ -517,7 +517,7 @@ class DarkidolDecoderLayer(GradientCheckpointingLayer):
 GEMMA3_START_DOCSTRING = None
 
 
-class DarkidolPreTrainedModel(Gemma2PreTrainedModel):
+class DarkidolPreTrainedModel(Darkidol2PreTrainedModel):
     base_model_prefix = ""
     _no_split_modules = [
         "DarkidolDecoderLayer",
@@ -527,12 +527,12 @@ class DarkidolPreTrainedModel(Gemma2PreTrainedModel):
     ]
 
     def _init_weights(self, module):
-        Gemma2PreTrainedModel._init_weights(module)
+        Darkidol2PreTrainedModel._init_weights(module)
         if isinstance(module, DarkidolMultiModalProjector):
             module.mm_input_projection_weight.data.zero_()
 
 
-class DarkidolTextModel(Gemma2Model):
+class DarkidolTextModel(Darkidol2Model):
     config: DarkidolTextConfig
 
     def __init__(self, config: DarkidolTextConfig):
@@ -658,7 +658,7 @@ class DarkidolTextModel(Gemma2Model):
         )
 
 
-class DarkidolForCausalLM(Gemma2ForCausalLM):
+class DarkidolForCausalLM(Darkidol2ForCausalLM):
     config: DarkidolTextConfig
     base_model_prefix = "language_model"
 
@@ -736,7 +736,7 @@ def token_type_ids_mask_function(
     return inner_mask
 
 
-class DarkidolModel(PaliGemmaModel):
+class DarkidolModel(PaliDarkidolModel):
     # we are filtering the logits/labels so we shouldn't divide the loss based on num_items_in_batch
     accepts_loss_kwargs = False
 
@@ -863,7 +863,7 @@ class DarkidolModel(PaliGemmaModel):
         )
 
 
-class DarkidolForConditionalGeneration(PaliGemmaForConditionalGeneration):
+class DarkidolForConditionalGeneration(PaliDarkidolForConditionalGeneration):
     @auto_docstring
     def forward(
         self,
@@ -896,8 +896,8 @@ class DarkidolForConditionalGeneration(PaliGemmaForConditionalGeneration):
         >>> import requests
         >>> from transformers import AutoProcessor, DarkidolForConditionalGeneration
 
-        >>> model = DarkidolForConditionalGeneration.from_pretrained("google/gemma-3-4b-it")
-        >>> processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
+        >>> model = DarkidolForConditionalGeneration.from_pretrained("google/darkidol-4b-it")
+        >>> processor = AutoProcessor.from_pretrained("google/darkidol-4b-it")
 
         >>> messages = [
         ...     {
